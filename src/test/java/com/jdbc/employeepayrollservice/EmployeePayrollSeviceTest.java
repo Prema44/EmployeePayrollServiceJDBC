@@ -8,9 +8,19 @@ import java.util.*;
 public class EmployeePayrollSeviceTest {
 	
 	@Test
-	public void givenEmployeePayrollInDB_WhenRetrieved_ShouldMatchEmployeeCount() throws SQLException {
+	public void givenEmployeePayrollInDB_WhenRetrieved_ShouldMatchEmployeeCount() throws DatabaseException {
 		EmployeePayrollSevice employeePayrollService = new EmployeePayrollSevice();
 		List<EmployeePayrollData> employeePayrollData = employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
 		assertEquals(5, employeePayrollData.size());
+	}
+	
+	@Test
+	public void givenNewSalaryForEmployee_WhenUpdated_ShouldBeInSync() throws DatabaseException, SQLException {
+		EmployeePayrollSevice employeePayrollService = new EmployeePayrollSevice();
+		List<EmployeePayrollData> employeePayrollData = employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
+		employeePayrollService.updateEmployeeSalary("Deepika", 5000000);
+		employeePayrollService.readEmployeePayrollDBData(EmployeePayrollSevice.IOService.DB_IO);
+		boolean result = employeePayrollService.checkEmployeeDataSync("Deepika");
+		assertEquals(true,result);
 	}
 }
