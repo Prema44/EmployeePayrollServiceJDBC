@@ -206,5 +206,21 @@ public class EmployeePayrollService {
 			System.out.println(exception.getMessage());
 		}
 	}
+	
+	/**
+	 * returns list of active employees
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public List<EmployeePayrollData> removeEmployeeFromPayroll(int id) {
+		List<EmployeePayrollData> onlyActiveList = null;
+		try {
+			onlyActiveList = employeePayrollDBService.removeEmployeeFromCompany(id);
+		} catch (DatabaseException e) {
+			System.out.println(e.getMessage());
+		}
+		return onlyActiveList;
+	}
 
 }

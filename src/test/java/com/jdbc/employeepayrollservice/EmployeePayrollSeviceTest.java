@@ -89,5 +89,10 @@ public class EmployeePayrollSeviceTest {
 		employeePayrollData = employeePayrollService.readEmployeeData(IOService.DB_IO);
 		assertEquals(3, employeePayrollData.size());
 	}
-
+	
+	@Test
+	public void givenEmployeeId_WhenRemoved_shouldReturnNumberOfActiveEmployees() {
+		List<EmployeePayrollData> onlyActiveList = employeePayrollService.removeEmployeeFromPayroll(2);
+		assertEquals(3, onlyActiveList.size());
+	}
 }

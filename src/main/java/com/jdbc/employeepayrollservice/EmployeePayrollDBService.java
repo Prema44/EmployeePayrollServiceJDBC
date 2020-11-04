@@ -374,4 +374,21 @@ public class EmployeePayrollDBService {
 			throw new DatabaseException("Unable to delete data");
 		}
 	}
+	
+	/**
+	 * makes status of employee having given id as inactive
+	 * 
+	 * @param id
+	 * @return
+	 * @throws payrollServiceDBException
+	 */
+	public List<EmployeePayrollData> removeEmployeeFromCompany(int id) throws DatabaseException {
+		List<EmployeePayrollData> listOfAllEmplyees = this.readData();
+		listOfAllEmplyees.forEach(employee -> {
+			if (employee.id == id) {
+				employee.is_active = false;
+			}
+		});
+		return listOfAllEmplyees;
+	}
 }

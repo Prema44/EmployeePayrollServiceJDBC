@@ -11,6 +11,7 @@ public class EmployeePayrollData {
 	public LocalDate startDate;
 	public List<String> departments;
 	public PayrollDetails payrollDetails;
+	public boolean is_active = true;
 
 	public EmployeePayrollData(int id, String name, double salary) {
 		this.id = id;
@@ -41,8 +42,9 @@ public class EmployeePayrollData {
 	}
 
 	public String toString() {
-		return "id = " + id + ", Departments : " + departments + ", name = " + name + ", Gender = " + gender + ", Salary = " + salary + ", Start Date = "
-				+ startDate + ", Payroll Details = " + payrollDetails;
+		return "id = " + id + ", Departments : " + departments + ", name = " + name + ", Gender = " + gender
+				+ ", Salary = " + salary + ", Start Date = " + startDate + ", Payroll Details = " + payrollDetails
+				+ ", Status = " + ((is_active) ? "Active" : "Inactive");
 	}
 
 	@Override
