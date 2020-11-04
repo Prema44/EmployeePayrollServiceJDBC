@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.Statement;
 
@@ -43,9 +42,9 @@ public class EmployeePayrollDBService {
 	 * @throws DatabaseException
 	 */
 	private Connection getConnection() throws DatabaseException {
-		String jdbcURL = "jdbc:mysql://localhost:3306/payroll_service?useSSL=false";
+		String jdbcURL = "jdbc:mysql://localhost:3306/employee_payroll_service?useSSL=false";
 		String userName = "root";
-		String password = "rpatil";
+		String password = "Prema@44";
 		Connection connection = null;
 		try {
 			System.out.println("Connecting to database:" + jdbcURL);
@@ -295,7 +294,7 @@ public class EmployeePayrollDBService {
 	 * @throws SQLException
 	 */
 	@SuppressWarnings("static-access")
-	public EmployeePayrollData addEmployeeToPayroll(String name, String gender, double salary, LocalDate date)
+	public EmployeePayrollData addEmployeeToPayroll(String name, String gender, double salary, LocalDate date, List<String> departments)
 			throws DatabaseException, SQLException {
 		int employeeId = -1;
 		Connection connection = null;
@@ -327,7 +326,26 @@ public class EmployeePayrollDBService {
 			throw new DatabaseException("Unable to add to database");
 		}
 		
-		this.addToPayrollDetails(connection,employeeId, salary);			// adding to payroll_details table
+		this.addToPayrollDetails(connection, employeeId, salary); 
+
+		try (Statement statement = (Statement) connection.createStatement()) { // adding to employee_dept table
+			final int empId = employeeId;
+			departments.forEach(dept -> {
+				String sql = String.format("insert into employee_dept values (%s, '%s')", empId, dept);
+				try {
+					statement.executeUpdate(sql);
+				} catch (SQLException e) {
+				}
+			});
+			employee = new EmployeePayrollData(employeeId, name, gender, salary, date, departments);
+		} catch (SQLException exception) {
+			try {
+				connection.rollback();
+			} catch (SQLException e) {
+				throw new DatabaseException(e.getMessage());
+			}
+			throw new DatabaseException("Unable to add to database");
+		}
 		
 		try {
 			connection.commit();
