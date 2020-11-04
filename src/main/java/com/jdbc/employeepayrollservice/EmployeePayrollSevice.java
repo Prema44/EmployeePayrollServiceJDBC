@@ -1,6 +1,7 @@
 package com.jdbc.employeepayrollservice;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.*;
 
 public class EmployeePayrollSevice {
@@ -114,6 +115,11 @@ public class EmployeePayrollSevice {
 		EmployeePayrollData employee = this.employeeList.stream().filter(employeeData -> employeeData.name.equals(name))
 				.findFirst().orElse(null);
 		return employee;
+	}
+	
+	public int getEmployeeForDateRange(LocalDate start, LocalDate end) throws DatabaseException {
+		int result  = employeePayrollDB.getEmployeeForDateRange(start,end);
+		return result;
 	}
 
 	public boolean checkEmployeeDataSync(String name) {
