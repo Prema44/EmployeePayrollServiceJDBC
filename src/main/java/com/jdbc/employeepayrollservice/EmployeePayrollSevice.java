@@ -150,8 +150,9 @@ public class EmployeePayrollSevice {
 	 * @param salary
 	 * @param date
 	 * @throws DatabaseException 
+	 * @throws SQLException 
 	 */
-	public void addEmployeeToPayroll(String name, String gender, double salary, LocalDate date) throws DatabaseException {
+	public void addEmployeeToPayroll(String name, String gender, double salary, LocalDate date) throws DatabaseException, SQLException {
 			employeePayrollDB.addEmployeeToPayroll(name, gender, salary, date);	
 	}
 

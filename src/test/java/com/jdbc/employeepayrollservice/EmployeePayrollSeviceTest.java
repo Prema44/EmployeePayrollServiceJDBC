@@ -85,7 +85,7 @@ public class EmployeePayrollSeviceTest {
 	}
 	
 	@Test
-	public void givenNewEmployee_WhenAdded_ShouldSincWithDB() throws DatabaseException {
+	public void givenNewEmployee_WhenAdded_ShouldSincWithDB() throws DatabaseException, SQLException {
 		EmployeePayrollSevice employeePayrollService = new EmployeePayrollSevice();
 		employeePayrollService.addEmployeeToPayroll("Raghav", "M", 500000, LocalDate.now());
 		boolean result = employeePayrollService.checkEmployeeDataSync("Raghav");
