@@ -141,6 +141,19 @@ public class EmployeePayrollSevice {
 	public Map<String, Double> getCountByGender() throws DatabaseException {
 		return employeePayrollDB.getEmployeesByFunction("COUNT");
     }
+	
+	/**
+	 * adds employee details to database
+	 * 
+	 * @param name
+	 * @param gender
+	 * @param salary
+	 * @param date
+	 * @throws DatabaseException 
+	 */
+	public void addEmployeeToPayroll(String name, String gender, double salary, LocalDate date) throws DatabaseException {
+			employeePayrollDB.addEmployeeToPayroll(name, gender, salary, date);	
+	}
 
 	public boolean checkEmployeeDataSync(String name) {
 		List<EmployeePayrollData> employeeList = employeePayrollDB.getEmployeePayrollData(name);

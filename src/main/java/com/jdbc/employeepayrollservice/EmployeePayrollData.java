@@ -3,42 +3,44 @@ package com.jdbc.employeepayrollservice;
 import java.time.LocalDate;
 
 public class EmployeePayrollData {
-	public String name;
 	public int id;
+	public String name;
+	public String gender;
 	public double salary;
-	private LocalDate start;
+	public LocalDate startDate;
 
 	public EmployeePayrollData(int id, String name, double salary) {
-		super();
-		this.name = name;
 		this.id = id;
+		this.name = name;
 		this.salary = salary;
 	}
 
-	public EmployeePayrollData(int id, String name, double salary, LocalDate start) {
+	public EmployeePayrollData(int id, String name, double salary, LocalDate startDate) {
 		this(id, name, salary);
-		this.start = start;
+		this.startDate = startDate;
 	}
-	
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		EmployeePayrollData other = (EmployeePayrollData) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
+
+	public EmployeePayrollData(int id, String name, String gender, double salary, LocalDate startDate) {
+		this(id, name, salary, startDate);
+		this.gender = gender;
+	}
+
+	public String toString() {
+		return "id = " + id + ", name = " + name + ", Gender = " + gender + ", Salary = " + salary + ", Start Date = "
+				+ startDate;
 	}
 
 	@Override
-	public String toString() {
-		return "id=" + id + ", name=" + name + ", salary=" + salary + ", joining date "+start;
-	}
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
 
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		EmployeePayrollData that = (EmployeePayrollData) o;
+		return id == that.id && Double.compare(that.salary, salary) == 0 && name.equals(that.name);
+	}
 }

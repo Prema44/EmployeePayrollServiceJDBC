@@ -1,6 +1,7 @@
 package com.jdbc.employeepayrollservice;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import com.jdbc.employeepayrollservice.EmployeePayrollSevice.IOService;
 import java.sql.SQLException;
@@ -72,7 +73,6 @@ public class EmployeePayrollSeviceTest {
 		genderComputedMap = employeePayrollService.getMaxSalaryByGender();
 		assertEquals(true, genderComputedMap.get("M") == 3000000);
 		assertEquals(true, genderComputedMap.get("F") == 5000000);
-
 	}
 
 	@Test
@@ -82,7 +82,13 @@ public class EmployeePayrollSeviceTest {
 		genderComputedMap = employeePayrollService.getCountByGender();
 		assertEquals(true, genderComputedMap.get("M") == 3);
 		assertEquals(true, genderComputedMap.get("F") == 1);
-
 	}
 	
+	@Test
+	public void givenNewEmployee_WhenAdded_ShouldSincWithDB() throws DatabaseException {
+		EmployeePayrollSevice employeePayrollService = new EmployeePayrollSevice();
+		employeePayrollService.addEmployeeToPayroll("Raghav", "M", 500000, LocalDate.now());
+		boolean result = employeePayrollService.checkEmployeeDataSync("Raghav");
+		assertTrue(result);
+	}
 }
