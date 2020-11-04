@@ -3,189 +3,232 @@ package com.jdbc.employeepayrollservice;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import com.mysql.jdbc.PreparedStatement;
+import com.mysql.jdbc.Statement;
 
 public class EmployeePayrollDBService {
-
-	private PreparedStatement employeeStatement;
-	private static EmployeePayrollDBService employeePayrollDB;
+	private static EmployeePayrollDBService employeePayrollDBService;
+	private PreparedStatement employeePayrollDataPrepareStatement;
 
 	private EmployeePayrollDBService() {
+
 	}
 
+	/**
+	 * initiates employeePayrollDBService only once and returns same
+	 * 
+	 * @return
+	 */
 	public static EmployeePayrollDBService getInstance() {
-		if (employeePayrollDB == null) {
-			employeePayrollDB = new EmployeePayrollDBService();
+		if (employeePayrollDBService == null) {
+			employeePayrollDBService = new EmployeePayrollDBService();
 		}
-		return employeePayrollDB;
+		return employeePayrollDBService;
 	}
 
-	private Connection getConnection() throws SQLException {
+	/**
+	 * returns established connection with database
+	 * 
+	 * @return
+	 * @throws DatabaseException
+	 */
+	private Connection getConnection() throws DatabaseException {
 		String jdbcURL = "jdbc:mysql://localhost:3306/employee_payroll_service?useSSL=false";
 		String userName = "root";
-		String password = "Jan1998ad";
-		Connection connection;
+		String password = "Prema@44";
+		Connection connection = null;
 		try {
-			Class.forName("com.mysql.jdbc.Driver");
+			System.out.println("Connecting to database:" + jdbcURL);
 			connection = DriverManager.getConnection(jdbcURL, userName, password);
-		} catch (Exception e) {
-			throw new SQLException("Connection was unsuccessful");
+			System.out.println("Connection is successful!" + connection);
+		} catch (Exception exception) {
+			throw new DatabaseException("Connection is not successful");
 		}
+
 		return connection;
 	}
 
 	/**
-	 * Usecase2: Reading data from the employee_payroll_service
+	 * returns list of
 	 * 
+	 * @param resultSet
 	 * @return
 	 * @throws SQLException
 	 * @throws DatabaseException
 	 */
-	public List<EmployeePayrollData> readData() throws DatabaseException {
-		String sql = "Select * from employee_payroll_service; ";
-		List<EmployeePayrollData> employeeData = new ArrayList<>();
-		try (Connection connection = this.getConnection();) {
-			Statement statement = connection.createStatement();
-			ResultSet resultSet = statement.executeQuery(sql);
-			employeeData = this.getEmployeePayrollData(resultSet);
-		} catch (Exception exception) {
-			throw new DatabaseException("Unable to execute query");
+	private List<EmployeePayrollData> getEmployeePayrollData(ResultSet resultSet) throws SQLException {
+		List<EmployeePayrollData> employeePayrollList = new ArrayList<>();
+		while (resultSet.next()) {
+			int id = resultSet.getInt("id");
+			String name = resultSet.getString("name");
+			double salary = resultSet.getDouble("salary");
+			LocalDate startDate = resultSet.getDate("start").toLocalDate();
+			employeePayrollList.add(new EmployeePayrollData(id, name, salary, startDate));
 		}
-		return employeeData;
+
+		return employeePayrollList;
+	}
+
+	private void prepareStatementForEmployeeData() throws DatabaseException {
+		try {
+			Connection connection = this.getConnection();
+			String sql = "Select * from employee_payroll where name = ?";
+			employeePayrollDataPrepareStatement = (PreparedStatement) connection.prepareStatement(sql);
+		} catch (SQLException | DatabaseException exception) {
+			throw new DatabaseException(exception.getMessage());
+		}
 	}
 
 	/**
-	 * Usecase3: Function to update salary in the table for a particular person
+	 * updates data using statement
 	 * 
 	 * @param name
 	 * @param salary
 	 * @return
 	 * @throws DatabaseException
 	 */
-	private int updateEmployeeUsingStatement(String name, double salary) throws DatabaseException {
-		String sql = String.format("Update employee_payroll_service set salary = %.2f where name = '%s';", salary,
-				name);
-		int result = 0;
+	private int updateEmployeeDataUsingStatement(String name, double salary) throws DatabaseException {
+		String sql = String.format("update employee_payroll set salary = %.2f where name = '%s';", salary, name);
+
 		try (Connection connection = this.getConnection()) {
-			Statement statement = connection.createStatement();
-			result = statement.executeUpdate(sql);
-		} catch (SQLException e) {
-			throw new DatabaseException("Unable to update");
+			Statement statement = (Statement) connection.createStatement();
+			return statement.executeUpdate(sql);
+		} catch (DatabaseException exception) {
+			throw new DatabaseException(exception.getMessage());
+		} catch (SQLException exception) {
+			throw new DatabaseException("Error while updating data");
 		}
-		return result;
-	}
-
-	public List<EmployeePayrollData> getEmployeeData(String name) throws DatabaseException {
-		return readData().stream().filter(employee -> employee.name.equals(name)).collect(Collectors.toList());
-	}
-
-	public int updateEmployeeData(String name, double salary) throws DatabaseException {
-		return this.updateEmployeeUsingStatement(name, salary);
-	}
-
-	public List<EmployeePayrollData> getEmployeePayrollData(String name) {
-		List<EmployeePayrollData> employeePayrollList = null;
-		if (this.employeeStatement == null)
-			this.preparedStatementForEmployeeData();
-		try {
-			employeeStatement.setString(1, name);
-			ResultSet resultSet = employeeStatement.executeQuery();
-			employeePayrollList = this.getEmployeePayrollData(resultSet);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return employeePayrollList;
 	}
 
 	/**
-	 * Usecase4: Refactored the result set
+	 * updates data using prepared statement
 	 * 
-	 * @param resultSet
+	 * @param name
+	 * @param salary
 	 * @return
+	 * @throws DatabaseException
 	 */
-	private List<EmployeePayrollData> getEmployeePayrollData(ResultSet resultSet) {
+	private int updateEmployeeDataUsingPreparedStatement(String name, double salary) throws DatabaseException {
+		try (Connection connection = this.getConnection()) {
+			String sql = "Update employee_payroll set salary = ? where name = ? ; ";
+			PreparedStatement prepareStatement = (PreparedStatement) connection.prepareStatement(sql);
+			prepareStatement.setDouble(1, salary);
+			prepareStatement.setString(2, name);
+			return prepareStatement.executeUpdate();
+		} catch (SQLException | DatabaseException exception) {
+			throw new DatabaseException(exception.getMessage());
+		}
+	}
+
+	/**
+	 * when passed query returns list of employee payroll data
+	 * 
+	 * @param sql
+	 * @return
+	 * @throws DatabaseException
+	 */
+	private List<EmployeePayrollData> getData(String sql) throws DatabaseException {
 		List<EmployeePayrollData> employeePayrollList = new ArrayList<>();
+		try (Connection connection = this.getConnection()) {
+			Statement statement = (Statement) connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql);
+			employeePayrollList = this.getEmployeePayrollData(resultSet);
+		} catch (SQLException | DatabaseException exception) {
+			throw new DatabaseException(exception.getMessage());
+		}
+
+		return employeePayrollList;
+	}
+
+	/**
+	 * reads data from database and returns it in list
+	 * 
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public List<EmployeePayrollData> readData() throws DatabaseException {
+		String sql = "select employee_payroll.employeeId, employee_dept.departmentName, employee_payroll.name, employee.gender,"
+				+ "payroll_details.salary, payroll_details.deductions, payroll_details.taxable_pay, payroll_details.tax, payroll_details.net_pay, employee_payroll.start"
+				+ "from employee_payroll"
+				+ "inner join employee_dept on employee_payroll.employeeId = employee_dept.employeeId"
+				+ "inner join payroll_details on employee_payroll.employeeId = payroll_details.employeeId;";
+		return this.getData(sql);
+	}
+
+	/**
+	 * updates data and returns number of records updated
+	 * 
+	 * @param name
+	 * @param salary
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public int updateEmployeeData(String name, double salary) throws DatabaseException {
+		return this.updateEmployeeDataUsingPreparedStatement(name, salary);
+	}
+
+	public List<EmployeePayrollData> getEmployeePayrollData(String name) throws DatabaseException {
+		List<EmployeePayrollData> employeePayrollList = null;
 		try {
-			while (resultSet.next()) {
-				int id = resultSet.getInt("id");
-				String name = resultSet.getString("name");
-				double salary = resultSet.getDouble("salary");
-				LocalDate start = resultSet.getDate("start").toLocalDate();
-				employeePayrollList.add(new EmployeePayrollData(id, name, salary, start));
+			if (this.employeePayrollDataPrepareStatement == null) {
+				this.prepareStatementForEmployeeData();
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
+			employeePayrollDataPrepareStatement.setString(1, name);
+			ResultSet resultSet = employeePayrollDataPrepareStatement.executeQuery();
+			employeePayrollList = this.getEmployeePayrollData(resultSet);
+		} catch (SQLException | DatabaseException exception) {
+			throw new DatabaseException(exception.getMessage());
 		}
 		return employeePayrollList;
 	}
 
 	/**
-	 * Usecase4: Prepared Statement for the payroll database
-	 */
-	private void preparedStatementForEmployeeData() {
-		try {
-			Connection connection = this.getConnection();
-			String sql = "SELECT * FROM employee_payroll_service WHERE name = ?";
-			employeeStatement = connection.prepareStatement(sql);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Usecase5: Implementing query to find employees joined between the particular
-	 * dates
+	 * when given date range returns list of employees who joined between dates
 	 * 
 	 * @param start
 	 * @param end
 	 * @return
 	 * @throws DatabaseException
 	 */
-	public int getEmployeeForDateRange(LocalDate start, LocalDate end) throws DatabaseException {
-		String sql = String.format("Select * from employee_payroll_service where start between '%s' and '%s' ;",Date.valueOf(start), Date.valueOf(end));
-		List<EmployeePayrollData> employeeData = new ArrayList<>();
-		try (Connection connection = this.getConnection();) {
-			Statement statement = connection.createStatement();
-			ResultSet resultSet = statement.executeQuery(sql);
-			employeeData = this.getEmployeePayrollData(resultSet);
-		} catch (Exception exception) {
-			throw new DatabaseException("Unable to execute query");
-		}
-		return employeeData.size();
+	public List<EmployeePayrollData> readDataForGivenDateRange(LocalDate start, LocalDate end)
+			throws DatabaseException {
+		String sql = String.format("Select * from employee_payroll where start between '%s' and '%s' ;",
+				Date.valueOf(start), Date.valueOf(end));
+		return this.getData(sql);
 	}
-	
+
 	/**
-	 * Usecase6: performing Aggregate functions query on the employee table 
+	 * returns map of gender and calculated values when passed a function
+	 * 
 	 * @param function
 	 * @return
 	 * @throws DatabaseException
 	 */
-	public Map<String, Double> getEmployeesByFunction(String function) throws DatabaseException   {
-		Map<String, Double> aggregateFunctionMap = new HashMap<>();
-		String sql = String.format("Select gender, %s(salary) from employee_payroll_service group by gender ; ", function);
+	public Map<String, Double> getEmployeesByFunction(String function) throws DatabaseException {
+		Map<String, Double> genderComputedMap = new HashMap<>();
+		String sql = String.format("Select gender, %s(salary) from employee_payroll group by gender ; ", function);
 		try (Connection connection = this.getConnection()) {
 			Statement statement = (Statement) connection.createStatement();
-			ResultSet resultSet = statement.executeQuery(sql); 
-			while (resultSet.next()) {
-				String gender = resultSet.getString(1);
-				Double salary = resultSet.getDouble(2);
-				aggregateFunctionMap.put(gender, salary);
+			ResultSet result = statement.executeQuery(sql);
+			while (result.next()) {
+				String gender = result.getString(1);
+				Double salary = result.getDouble(2);
+				genderComputedMap.put(gender, salary);
 			}
 		} catch (SQLException exception) {
-			throw new DatabaseException("Unable to execute " + function);
+			throw new DatabaseException("Unable to find " + function);
 		}
-		return aggregateFunctionMap;
+		return genderComputedMap;
 	}
-	
+
 	/**
 	 * adds employee details to database
 	 * 
@@ -195,8 +238,9 @@ public class EmployeePayrollDBService {
 	 * @param date
 	 * @return
 	 * @throws DatabaseException
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
+	@SuppressWarnings("static-access")
 	public EmployeePayrollData addEmployeeToPayroll(String name, String gender, double salary, LocalDate date)
 			throws DatabaseException, SQLException {
 		int employeeId = -1;
@@ -205,10 +249,10 @@ public class EmployeePayrollDBService {
 		connection = this.getConnection();
 		try {
 			connection.setAutoCommit(false);
-		} catch (SQLException e1) {
-			e1.printStackTrace();
+		} catch (SQLException exception) {
+			throw new DatabaseException(exception.getMessage());
 		}
-		try (Statement statement = (Statement) connection.createStatement()) {
+		try (Statement statement = (Statement) connection.createStatement()) { // adding to employee_payroll table
 			String sql = String.format(
 					"insert into employee_payroll (name, gender, salary, start) values ('%s', '%s', '%s', '%s')", name,
 					gender, salary, Date.valueOf(date));
@@ -223,11 +267,11 @@ public class EmployeePayrollDBService {
 			try {
 				connection.rollback();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw new DatabaseException(e.getMessage());
 			}
 			throw new DatabaseException("Unable to add to database");
 		}
-		try (Statement statement = (Statement) connection.createStatement()) {
+		try (Statement statement = (Statement) connection.createStatement()) { // adding to payroll_details table
 			double deductions = salary * 0.2;
 			double taxable_pay = salary - deductions;
 			double tax = taxable_pay * 0.1;
@@ -236,22 +280,19 @@ public class EmployeePayrollDBService {
 					"insert into payroll_details (employeeId, basic_pay, deductions, taxable_pay, tax, net_pay) "
 							+ "VALUES ('%s','%s','%s','%s','%s','%s')",
 					employeeId, salary, deductions, taxable_pay, tax, netPay);
-			int rowAffected = statement.executeUpdate(sql);
-			if (rowAffected == 1) {
-				employee = new EmployeePayrollData(employeeId, name, gender, salary, date);
-			}
+			statement.executeUpdate(sql);
 		} catch (SQLException e) {
 			try {
 				connection.rollback();
 			} catch (SQLException exception) {
-				exception.printStackTrace();
+				throw new DatabaseException(exception.getMessage());
 			}
 			throw new DatabaseException("Unable to add to database");
 		}
 		try {
 			connection.commit();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new DatabaseException(e.getMessage());
 		} finally {
 			if (connection != null) {
 				connection.close();
@@ -259,23 +300,21 @@ public class EmployeePayrollDBService {
 		}
 		return employee;
 	}
-	
+
 	/**
-	 * Usecase8: Performing the cascading delete on the employee table
+	 * deletes employee record in cascade from both tables of database
 	 * 
-	 * @param name
+	 * @param id
 	 * @throws DatabaseException
 	 */
-	public void deleteEmployee(String name) throws DatabaseException {
-		String sql = String.format("DELETE from employee_payroll_service where name = '%s';", name);
-		try {
-			Connection connection = this.getConnection();
-			Statement statement = connection.createStatement();
+	public void deleteEmployeeFromPayroll(int id) throws DatabaseException {
+		String sql = String.format("delete from employee_payroll where id = %s;", id);
+		try (Connection connection = this.getConnection()) {
+			Statement statement = (Statement) connection.createStatement();
 			statement.executeUpdate(sql);
 		} catch (SQLException exception) {
 			throw new DatabaseException("Unable to delete data");
 		}
 	}
-
 
 }
