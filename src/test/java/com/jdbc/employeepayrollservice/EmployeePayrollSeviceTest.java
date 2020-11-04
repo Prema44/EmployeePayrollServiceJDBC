@@ -32,4 +32,57 @@ public class EmployeePayrollSeviceTest {
 		int result = employeePayrollService.getEmployeeForDateRange(LocalDate.of(2019, 01, 01),LocalDate.of(2020, 01, 01));
 		assertEquals(3, result);
 	}
+	
+	@Test
+	public void givenEmployeePayrollInDB_WhenRetrievedForAverage_ShouldMatchedAverageSalaryForGender()
+			throws DatabaseException {
+		EmployeePayrollSevice employeePayrollService = new EmployeePayrollSevice();
+		Map<String, Double> genderComputedMap = null;
+		genderComputedMap = employeePayrollService.getSalaryAverageByGender();
+		assertEquals(true, genderComputedMap.get("M") == 2000000);
+		assertEquals(true, genderComputedMap.get("F") == 5000000);
+
+	}
+
+	@Test
+	public void givenEmployeePayrollInDB_WhenRetrievedForSum_ShouldMatchedSumSalaryForGender()
+			throws DatabaseException {
+		EmployeePayrollSevice employeePayrollService = new EmployeePayrollSevice();
+		Map<String, Double> genderComputedMap = null;
+		genderComputedMap = employeePayrollService.getSalarySumByGender();
+		assertEquals(true, genderComputedMap.get("M") == 6000000);
+		assertEquals(true, genderComputedMap.get("F") == 5000000);
+
+	}
+
+	@Test
+	public void givenEmployees_WhenRetrievedForMin_ShouldMatchedMinSalaryForGender() throws DatabaseException {
+		EmployeePayrollSevice employeePayrollService = new EmployeePayrollSevice();
+		Map<String, Double> genderComputedMap = null;
+		genderComputedMap = employeePayrollService.getMinSalaryByGender();
+		assertEquals(true, genderComputedMap.get("M") == 1000000);
+		assertEquals(true, genderComputedMap.get("F") == 5000000);
+
+	}
+
+	@Test
+	public void givenEmployees_WhenRetrievedForMax_ShouldMatchedMaxSalaryForGender() throws DatabaseException {
+		EmployeePayrollSevice employeePayrollService = new EmployeePayrollSevice();
+		Map<String, Double> genderComputedMap = null;
+		genderComputedMap = employeePayrollService.getMaxSalaryByGender();
+		assertEquals(true, genderComputedMap.get("M") == 3000000);
+		assertEquals(true, genderComputedMap.get("F") == 5000000);
+
+	}
+
+	@Test
+	public void givenEmployees_WhenRetrievedForCount_ShouldMatchedCountForGender() throws DatabaseException {
+		EmployeePayrollSevice employeePayrollService = new EmployeePayrollSevice();
+		Map<String, Double> genderComputedMap = null;
+		genderComputedMap = employeePayrollService.getCountByGender();
+		assertEquals(true, genderComputedMap.get("M") == 3);
+		assertEquals(true, genderComputedMap.get("F") == 1);
+
+	}
+	
 }

@@ -9,7 +9,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class EmployeePayrollDBService {
@@ -30,13 +32,13 @@ public class EmployeePayrollDBService {
 	private Connection getConnection() throws SQLException {
 		String jdbcURL = "jdbc:mysql://localhost:3306/employee_payroll_service?useSSL=false";
 		String userName = "root";
-		String password = "Prema@44";
+		String password = "Jan1998ad";
 		Connection connection;
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 			connection = DriverManager.getConnection(jdbcURL, userName, password);
 		} catch (Exception e) {
-			throw new SQLException("Connection was unsuccessful !!!");
+			throw new SQLException("Connection was unsuccessful");
 		}
 		return connection;
 	}
@@ -88,6 +90,20 @@ public class EmployeePayrollDBService {
 
 	public int updateEmployeeData(String name, double salary) throws DatabaseException {
 		return this.updateEmployeeUsingStatement(name, salary);
+	}
+
+	public List<EmployeePayrollData> getEmployeePayrollData(String name) {
+		List<EmployeePayrollData> employeePayrollList = null;
+		if (this.employeeStatement == null)
+			this.preparedStatementForEmployeeData();
+		try {
+			employeeStatement.setString(1, name);
+			ResultSet resultSet = employeeStatement.executeQuery();
+			employeePayrollList = this.getEmployeePayrollData(resultSet);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return employeePayrollList;
 	}
 
 	/**
@@ -145,5 +161,28 @@ public class EmployeePayrollDBService {
 			throw new DatabaseException("Unable to execute query");
 		}
 		return employeeData.size();
+	}
+	
+	/**
+	 * Usecase6: performing Aggregate functions query on the employee table 
+	 * @param function
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public Map<String, Double> getEmployeesByFunction(String function) throws DatabaseException   {
+		Map<String, Double> aggregateFunctionMap = new HashMap<>();
+		String sql = String.format("Select gender, %s(salary) from employee_payroll_service group by gender ; ", function);
+		try (Connection connection = this.getConnection()) {
+			Statement statement = (Statement) connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql); 
+			while (resultSet.next()) {
+				String gender = resultSet.getString(1);
+				Double salary = resultSet.getDouble(2);
+				aggregateFunctionMap.put(gender, salary);
+			}
+		} catch (SQLException exception) {
+			throw new DatabaseException("Unable to execute " + function);
+		}
+		return aggregateFunctionMap;
 	}
 }
