@@ -2,6 +2,7 @@ package com.jdbc.employeepayrollservice;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -12,7 +13,17 @@ import java.util.stream.Collectors;
 
 public class EmployeePayrollDBService {
 	
+	private PreparedStatement employeeStatement;
+	private static EmployeePayrollDBService employeePayrollDB;
+	
 	public EmployeePayrollDBService() {
+	}
+	
+	public static EmployeePayrollDBService getInstance() {
+		if (employeePayrollDB == null) {
+			employeePayrollDB = new EmployeePayrollDBService();
+		}
+		return employeePayrollDB;
 	}
 	
 	/**
@@ -90,5 +101,47 @@ public class EmployeePayrollDBService {
 
 	public int updateEmployeeData(String name, double salary) throws DatabaseException {
 		return this.updateEmployeeUsingStatement(name, salary);
+	}
+	
+	public List<EmployeePayrollData> getEmployeePayrollData(String name) {
+		List<EmployeePayrollData> employeePayrollList = null;
+		if (this.employeeStatement == null)
+			this.preparedStatementForEmployeeData();
+		try {
+			employeeStatement.setString(1, name);
+			ResultSet resultSet = employeeStatement.executeQuery();
+			employeePayrollList = this.getEmployeePayrollData(resultSet);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		return employeePayrollList;
+	}
+
+	private List<EmployeePayrollData> getEmployeePayrollData(ResultSet resultSet) {
+		List<EmployeePayrollData> employeePayrollList = new ArrayList<>();
+		try {
+			while (resultSet.next()) {
+				int id = resultSet.getInt("id");
+				String name = resultSet.getString("name");
+				double salary = resultSet.getDouble("salary");
+				LocalDate start = resultSet.getDate("start").toLocalDate();
+				employeePayrollList.add(new EmployeePayrollData(id, name, salary, start));
+			}
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return employeePayrollList;
+	}
+
+	private void preparedStatementForEmployeeData() {
+		try {
+			Connection connection = this.getConnection();
+			String sql = "SELECT * FROM employee_payroll_service WHERE name = ?";
+			employeeStatement = connection.prepareStatement(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 }

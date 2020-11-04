@@ -18,9 +18,9 @@ public class EmployeePayrollSeviceTest {
 	public void givenNewSalaryForEmployee_WhenUpdated_ShouldBeInSync() throws DatabaseException, SQLException {
 		EmployeePayrollSevice employeePayrollService = new EmployeePayrollSevice();
 		List<EmployeePayrollData> employeePayrollData = employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
-		employeePayrollService.updateEmployeeSalary("Deepika", 5000000);
+		employeePayrollService.updateEmployeeSalary("Sakshat", 5000000);
 		employeePayrollService.readEmployeePayrollDBData(EmployeePayrollSevice.IOService.DB_IO);
-		boolean result = employeePayrollService.checkEmployeeDataSync("Deepika");
+		boolean result = employeePayrollService.checkEmployeeDataSync("Sakshat");
 		assertEquals(true,result);
 	}
 }
