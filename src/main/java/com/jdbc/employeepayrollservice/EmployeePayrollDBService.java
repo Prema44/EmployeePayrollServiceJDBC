@@ -203,6 +203,11 @@ public class EmployeePayrollDBService {
 		Connection connection = null;
 		EmployeePayrollData employee = null;
 		connection = this.getConnection();
+		try {
+			connection.setAutoCommit(false);
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
 		try (Statement statement = (Statement) connection.createStatement()) {
 			String sql = String.format(
 					"insert into employee_payroll (name, gender, salary, start) values ('%s', '%s', '%s', '%s')", name,
@@ -215,6 +220,11 @@ public class EmployeePayrollDBService {
 			}
 			employee = new EmployeePayrollData(employeeId, name, gender, salary, date);
 		} catch (SQLException exception) {
+			try {
+				connection.rollback();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 			throw new DatabaseException("Unable to add to database");
 		}
 		try (Statement statement = (Statement) connection.createStatement()) {
@@ -231,9 +241,24 @@ public class EmployeePayrollDBService {
 				employee = new EmployeePayrollData(employeeId, name, gender, salary, date);
 			}
 		} catch (SQLException e) {
+			try {
+				connection.rollback();
+			} catch (SQLException exception) {
+				exception.printStackTrace();
+			}
 			throw new DatabaseException("Unable to add to database");
+		}
+		try {
+			connection.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if (connection != null) {
+				connection.close();
+			}
 		}
 		return employee;
 	}
+
 
 }

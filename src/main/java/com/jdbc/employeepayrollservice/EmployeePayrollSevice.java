@@ -152,8 +152,8 @@ public class EmployeePayrollSevice {
 	 * @throws DatabaseException 
 	 * @throws SQLException 
 	 */
-	public void addEmployeeToPayroll(String name, String gender, double salary, LocalDate date) throws DatabaseException, SQLException {
-			employeePayrollDB.addEmployeeToPayroll(name, gender, salary, date);	
+	public void addEmployeeToPayroll(String name, String gender, double salary, LocalDate start) throws SQLException, DatabaseException {
+		this.employeeList.add(employeePayrollDB.addEmployeeToPayroll(name, gender, salary, start));
 	}
 
 	public boolean checkEmployeeDataSync(String name) {
