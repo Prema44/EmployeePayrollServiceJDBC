@@ -4,7 +4,11 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class EmployeePayrollService {
+	private static final Logger LOG = LogManager.getLogger(EmployeePayrollService.class);
 	public enum IOService {
 		CONSOLE_IO, FILE_IO, DB_IO, REST_IO
 	};
@@ -251,7 +255,7 @@ public class EmployeePayrollService {
 		employeeDataList.forEach(employee -> {
 			Runnable task = () -> {
 				employeeAdditionStatus.put(employee.hashCode(), false);
-				System.out.println("Employee Being Added: " + Thread.currentThread().getName());
+				LOG.info("Employee Being Added: " + Thread.currentThread().getName());
 				try {
 					employeePayrollDBService.addEmployeeToPayroll(employee.name, employee.gender, employee.salary,
 							employee.startDate, employee.departments);
@@ -259,7 +263,7 @@ public class EmployeePayrollService {
 					System.out.println(e.getMessage());
 				}
 				employeeAdditionStatus.put(employee.hashCode(), true);
-				System.out.println("Employee Added: " + Thread.currentThread().getName());
+				LOG.info("Employee Added: " + Thread.currentThread().getName());
 			};
 			Thread thread = new Thread(task, employee.name);
 			thread.start();
