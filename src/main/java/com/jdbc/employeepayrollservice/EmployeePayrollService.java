@@ -222,5 +222,18 @@ public class EmployeePayrollService {
 		}
 		return onlyActiveList;
 	}
+	
+	public void addMultipleEmployeesToPayroll(List<EmployeePayrollData> employeeDataList) {
+		employeeDataList.forEach(employee -> {
+//			System.out.println("Employee Being added: "+employee.name);
+			try {
+				employeePayrollDBService.addEmployeeToPayroll(employee.name,employee.gender,employee.salary,employee.startDate,employee.departments);
+			} catch (SQLException | DatabaseException e) {
+				e.printStackTrace();
+			}
+//			System.out.println("Employee added: "+employee.name);
+		});
+//		System.out.println(this.employeeList);
+	}
 
 }

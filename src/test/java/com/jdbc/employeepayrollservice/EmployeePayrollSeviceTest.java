@@ -5,6 +5,9 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import com.jdbc.employeepayrollservice.EmployeePayrollService.IOService;
+
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 public class EmployeePayrollSeviceTest {
@@ -13,7 +16,7 @@ public class EmployeePayrollSeviceTest {
 	public static List<EmployeePayrollData> employeePayrollData;
 
 	@Before
-	static void setUp() {
+	public void setUp() {
 		employeePayrollService = new EmployeePayrollService();
 		employeePayrollData = employeePayrollService.readEmployeeData(IOService.DB_IO);
 	}
@@ -94,5 +97,21 @@ public class EmployeePayrollSeviceTest {
 	public void givenEmployeeId_WhenRemoved_shouldReturnNumberOfActiveEmployees() {
 		List<EmployeePayrollData> onlyActiveList = employeePayrollService.removeEmployeeFromPayroll(2);
 		assertEquals(3, onlyActiveList.size());
+	}
+	
+	@Test
+	public void given6Employees_WhenAddedToDB_ShouldMatchEmployeeCount() throws DatabaseException {
+		EmployeePayrollData[] arrayOfEmp = { new EmployeePayrollData(0, "Jeff", "M", 100000.0, LocalDate.now(), Arrays.asList("Sales")),
+				new EmployeePayrollData(0, "Bill", "M", 200000.0, LocalDate.now(), Arrays.asList("Marketing")),
+				new EmployeePayrollData(0, "Mark ", "M", 150000.0, LocalDate.now(), Arrays.asList("Technical")),
+				new EmployeePayrollData(0, "Sundar", "M", 400000.0, LocalDate.now(), Arrays.asList("Sales","Technical")),
+				new EmployeePayrollData(0, "Mukesh ", "M", 4500000.0, LocalDate.now(), Arrays.asList("Sales")),
+				new EmployeePayrollData(0, "Anil", "M", 300000.0, LocalDate.now(), Arrays.asList("Sales")) };
+		Instant start = Instant.now();
+		employeePayrollService.addMultipleEmployeesToPayroll(Arrays.asList(arrayOfEmp));
+		Instant end = Instant.now();
+		System.out.println("Duration without Thread: " + Duration.between(start, end));
+		employeePayrollData = employeePayrollService.readEmployeeData(IOService.DB_IO);
+		assertEquals(7, employeePayrollData.size());
 	}
 }
