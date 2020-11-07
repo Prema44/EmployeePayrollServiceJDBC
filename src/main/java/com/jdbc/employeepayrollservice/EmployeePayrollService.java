@@ -276,5 +276,49 @@ public class EmployeePayrollService {
 			}
 		}
 	}
+	
+	/**
+	 * updates multiple rows in database
+	 * 
+	 * @param newSalaryMap
+	 */
+	public void updateMultipleSalaries(Map<String, Double> newSalaryMap) {
+		Map<Integer, Boolean> employeeAdditionStatus = new HashMap<Integer, Boolean>();
+		newSalaryMap.forEach((k, v) -> {
+			Runnable task = () -> {
+				employeeAdditionStatus.put(k.hashCode(), false);
+				LOG.info("Employee Being updated : " + Thread.currentThread().getName());
+				this.updateEmployeePayrollSalary(k, v);
+				employeeAdditionStatus.put(k.hashCode(), true);
+				LOG.info("Employee updated : " + Thread.currentThread().getName());
+			};
+			Thread thread = new Thread(task, k);
+			thread.start();
+		});
+		while (employeeAdditionStatus.containsValue(false)) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * checks if add data updated is in sync
+	 * 
+	 * @param nameList
+	 * @return
+	 */
+	public boolean checkEmployeeListSync(List<String> nameList) {
+		List<Boolean> resultList = new ArrayList<>();
+		nameList.forEach(name -> {
+			resultList.add(checkEmployeePayrollInSyncWithDB(name));
+		});
+		if (resultList.contains(false)) {
+			return false;
+		}
+		return true;
+	}
 
 }

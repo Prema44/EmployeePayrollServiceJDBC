@@ -118,4 +118,18 @@ public class EmployeePayrollSeviceTest {
 		employeePayrollData = employeePayrollService.readEmployeeData(IOService.DB_IO);
 		assertEquals(15, employeePayrollData.size());
 	}
+	
+	@Test
+	public void givenMultipleEmployees_WhenUpdatedSalary_ShouldSyncWithDB() {
+		Map<String, Double> salaryMap = new HashMap<>();
+		salaryMap.put("Bill", 700000.0);
+		salaryMap.put("Mukesh", 800000.0);
+		Instant start = Instant.now();
+		employeePayrollService.updateMultipleSalaries(salaryMap);
+		Instant end = Instant.now();
+		System.out.println("Duration with Thread: " + Duration.between(start, end));
+		employeePayrollData = employeePayrollService.readEmployeeData(IOService.DB_IO);
+		boolean result = employeePayrollService.checkEmployeeListSync(Arrays.asList("Bill", "Mukesh"));
+		assertEquals(true, result);
+	}
 }
