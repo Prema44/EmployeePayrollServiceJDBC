@@ -22,6 +22,11 @@ public class EmployeePayrollService {
 	public EmployeePayrollService() {
 		employeePayrollDBService = EmployeePayrollDBService.getInstance();
 	}
+	
+	public EmployeePayrollService(List<EmployeePayrollData> empList) {
+		this();
+		employeePayrollList = empList;
+	}
 
 	/**
 	 * returns employeePayrollData object given name of employee
@@ -319,6 +324,23 @@ public class EmployeePayrollService {
 			return false;
 		}
 		return true;
+	}
+	
+	/**
+	 * Adding employee object to payroll added to json
+	 * 
+	 * @param employee
+	 */
+	public void addEmployeeToPayroll(EmployeePayrollData employee) {
+		addEmployeeToPayroll(employee.name, employee.gender, employee.salary, employee.startDate, Arrays.asList(""));
+	}
+
+	public int countEntries(IOService io) {
+		int count = 0;
+		if (io.equals(IOService.REST_IO)) {
+			count = employeePayrollList.size();
+		}
+		return count;
 	}
 
 }
